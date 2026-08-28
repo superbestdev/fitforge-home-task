@@ -443,6 +443,75 @@ footer {
 }
 .appnav a:hover { color: var(--ink); background: var(--sunk); border-color: var(--ink-faint); }
 .appnav span[aria-current] { color: var(--ink); background: var(--sunk); font-weight: 600; }
+
+/* ---- print / PDF ------------------------------------------------------- */
+
+@page {
+  size: A4;
+  margin: 16mm 14mm 18mm;
+}
+
+@media print {
+  /* The screen palette is theme-aware; paper is not. Pin the light set so a
+     reader whose OS is in dark mode does not get a PDF of white-on-black. */
+  :root {
+    --paper:     #FFFFFF;
+    --surface:   #FFFFFF;
+    --sunk:      #F1F4F8;
+    --ink:       #101419;
+    --ink-soft:  #3D4855;
+    --ink-faint: #6B7784;
+    --rule:      #C9D1DA;
+    --rule-soft: #E2E7ED;
+    --steel:     #14406F;
+    --steel-bg:  #E8F0F9;
+    --amber:     #7E4A00;
+    --amber-bg:  #FAF0DC;
+    --danger:    #8E2418;
+  }
+
+  /* Chromium drops backgrounds when printing unless told otherwise, which
+     would silently erase the steel/amber coding the whole document relies on. */
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  body { background: #fff; font-size: 10.5pt; line-height: 1.5; }
+  .wrap { max-width: none; padding: 0; }
+  .appnav { display: none; }
+
+  h1 { font-size: 26pt; }
+  h2 { font-size: 14pt; }
+  h3 { font-size: 11pt; }
+  p, td, li { orphans: 3; widows: 3; }
+
+  .mast { padding-top: 0; }
+  section { padding-top: 14mm; break-before: page; }
+  section:first-of-type { break-before: auto; padding-top: 10mm; }
+  h2, h3 { break-after: avoid; }
+
+  /* Anything that reads as one object should not be split across a fold: a
+     pipeline whose last two steps land on the next page stops being a diagram. */
+  .flow, .principle, .legend, ol.reqs li, .limits li { break-inside: avoid; }
+  .step, .gate, tr { break-inside: avoid; }
+
+  /* A 24-row table cannot "avoid" a break — asking it to just pushes the whole
+     thing to the next page and leaves the one before it blank under a heading.
+     Let it break between rows instead, and repeat the header so a continuation
+     page is still readable on its own. */
+  .tablewrap { break-inside: auto; }
+  table { break-inside: auto; }
+  thead { display: table-header-group; }
+  tbody { break-inside: auto; }
+
+  /* On screen wide tables scroll inside their own box. On paper there is
+     nowhere to scroll to, so let them lay out at full width instead. */
+  .tablewrap { overflow: visible; }
+  table { min-width: 0; }
+  td, th { padding: .45rem .6rem; }
+  pre { font-size: 7.6pt; white-space: pre-wrap; break-inside: avoid; }
+
+  a { color: var(--steel); text-decoration: none; }
+  footer { break-before: avoid; }
+}
 </style>
   </head>
   <body>

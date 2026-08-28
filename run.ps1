@@ -70,6 +70,7 @@ switch ($Task.ToLower()) {
             @('demo',     'Scripted multi-issue session, end to end'),
             @('sample',   'Generate a realistic sample manual PDF for upload testing'),
             @('demo-reset','Reset the demo (unback the bike, clear its sessions) for a re-take'),
+            @('docs-pdf', 'Print the /docs overview to a PDF (needs the web container up)'),
             @('test',     'Run the test suite'),
             @('eval',     'Replay the golden sessions'),
             @('e2e',      'Browser tests: drives both UIs in real Chromium'),
@@ -123,6 +124,16 @@ switch ($Task.ToLower()) {
         Write-Host ''
         Write-Host 'Drop it into the agent console -> Manuals:' -ForegroundColor Cyan
         Write-Host '  data\sample\FitForge_Sample_Service_Manual.pdf' -ForegroundColor Cyan
+    }
+    'docs-pdf' {
+        # Chromium does the layout, so this runs on the host next to Playwright.
+        Push-Location 'web/e2e'
+        try {
+            if (-not (Test-Path 'node_modules')) { Invoke-Cmd @('npm', 'install') }
+            Invoke-Cmd @('node', 'docs-pdf.mjs')
+        } finally { Pop-Location }
+        Write-Host ''
+        Write-Host '  docs\FitForge_Architecture_Overview.pdf' -ForegroundColor Cyan
     }
     'demo-reset' {
         Invoke-Cmd ($RunApi + @('python', '-m', 'seed.demo_reset'))

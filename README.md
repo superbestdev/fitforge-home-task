@@ -176,6 +176,7 @@ docs/                   the five case-study deliverables + four bonus topics
 **Start here**
 
 0. [Overview](docs/00-overview.md) — what it is for, how it is laid out, how a message becomes an answer
+   - Also served at **http://localhost:5173/docs**, and as a [13-page PDF](docs/FitForge_Architecture_Overview.pdf) — rebuild it with `.un.ps1 docs-pdf`
 
 **The case study deliverables**
 

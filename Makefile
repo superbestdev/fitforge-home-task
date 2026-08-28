@@ -86,6 +86,9 @@ demo: ## Scripted multi-issue session: two machines, two threads, one order
 demo-reset: ## Reset the demo state so the scenario can be recorded again
 	$(COMPOSE) exec api python -m seed.demo_reset
 
+docs-pdf: ## Print the /docs overview to docs/FitForge_Architecture_Overview.pdf
+	cd web/e2e && node docs-pdf.mjs
+
 .PHONY: sample
 sample: ## Generate a realistic sample manual PDF for upload testing
 	$(RUN) python -m seed.generate_sample_manual
