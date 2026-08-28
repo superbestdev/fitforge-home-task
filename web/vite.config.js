@@ -17,6 +17,26 @@ import react from '@vitejs/plugin-react'
 // carries no absolute backend URL to get wrong.
 const API_ORIGIN = process.env.API_ORIGIN || 'http://localhost:8000'
 
+// Vite serves a request only when its Host header is a loopback name or is
+// listed here. That is DNS-rebinding protection, not bureaucracy: without it a
+// page anywhere on the internet could point its own domain at 127.0.0.1 and
+// read this dev server's responses — your source, your .env-derived config —
+// out of a visitor's browser.
+//
+// A tunnel (ngrok, Cloudflare, Tailscale Funnel) arrives carrying its own
+// hostname, so it has to be named. Set WEB_ALLOWED_HOSTS to a comma-separated
+// list in .env; a leading dot covers a domain and all of its subdomains, which
+// is what you want for ngrok since the subdomain changes:
+//
+//   WEB_ALLOWED_HOSTS=.ngrok-free.dev,.trycloudflare.com
+//
+// Do not reach for `true` here. It disables the check for every host, which is
+// the whole vulnerability.
+const ALLOWED_HOSTS = (process.env.WEB_ALLOWED_HOSTS || '')
+  .split(',')
+  .map((h) => h.trim())
+  .filter(Boolean)
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -33,6 +53,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    allowedHosts: ALLOWED_HOSTS,
+    // Behind a TLS tunnel the page is served over https, so the HMR socket has
+    // to be wss on 443 rather than ws on 5173 — the port the dev server would
+    // otherwise advertise is not the port the browser can reach.
+    hmr: process.env.WEB_PUBLIC_HOST
+      ? { protocol: 'wss', host: process.env.WEB_PUBLIC_HOST, clientPort: 443 }
+      : undefined,
     // The source tree is bind-mounted from the host, so inotify events do not
     // cross into the container and HMR needs polling to see edits at all.
     watch: { usePolling: true },

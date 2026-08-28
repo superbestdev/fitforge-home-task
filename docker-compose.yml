@@ -147,8 +147,14 @@ services:
       - ./web/index.html:/app/index.html:ro
       - ./web/console/index.html:/app/console/index.html:ro
       - ./web/docs/index.html:/app/docs/index.html:ro
+      # Mounted, not baked in: without this a config change needs a full
+      # image rebuild, and `--force-recreate` silently keeps the old one.
+      - ./web/vite.config.js:/app/vite.config.js:ro
     environment:
       API_ORIGIN: http://api:8000
+      # Only needed when reaching the UI through a tunnel; see web/vite.config.js.
+      WEB_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS:-}
+      WEB_PUBLIC_HOST: ${WEB_PUBLIC_HOST:-}
     depends_on:
       - api
 

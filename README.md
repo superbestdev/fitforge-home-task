@@ -56,6 +56,22 @@ Then open:
 | Customer chat | http://localhost:5173 |
 | Agent console | http://localhost:5173/console |
 | Architecture overview | http://localhost:5173/docs |
+
+### Reaching the UI from another machine
+
+Vite serves a request only when its `Host` header is a loopback name — DNS-rebinding
+protection, so a page on the internet cannot point its own domain at your `127.0.0.1`
+and read the dev server out of your browser. A tunnel arrives with its own hostname,
+so name it in `.env`:
+
+```bash
+WEB_ALLOWED_HOSTS=.ngrok-free.dev      # leading dot covers all subdomains
+WEB_PUBLIC_HOST=your-name.ngrok-free.dev   # so hot reload reconnects over wss
+```
+
+Then `docker compose up -d web`. Do not set `allowedHosts: true` — that disables the
+check for every host, which is the whole vulnerability.
+
 | API docs | http://localhost:8000/docs |
 
 Other useful targets: `test`, `eval`, `e2e` (browser tests), `metrics`,
