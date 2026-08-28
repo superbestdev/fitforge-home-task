@@ -1,0 +1,366 @@
+@import '../tokens.css';
+
+/* ===========================================================================
+   Agent console.
+
+   Operated, not read. Same identity as the customer widget, but the craft goes
+   into information density rather than typography: a queue that ranks itself,
+   state encoded in form as well as colour, and a handoff packet a human can
+   act on without scrolling twice.
+
+   The accent stays reserved for the operator's own actions — Claim, Resolve,
+   the active view. Escalation urgency is carried by the status system, never
+   by the brand colour.
+   =========================================================================== */
+
+.shell { height: 100dvh; display: flex; flex-direction: column; }
+
+/* ---------------------------------------------------------------------------
+   Header
+   --------------------------------------------------------------------------- */
+
+header {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+
+.brand { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.lockup { display: inline-flex; align-items: center; gap: 9px; }
+.mark { display: block; flex: none; color: var(--volt); }
+.brand strong {
+  font-family: var(--ui); font-weight: 700; font-size: .95rem;
+  letter-spacing: -.005em; white-space: nowrap;
+}
+.brand strong em {
+  font-style: normal; font-weight: 500; color: var(--muted);
+}
+
+/* A segmented control drawn as one unit. The earlier version gave the inactive
+   tab a transparent border and muted text, which put unlabelled grey words
+   next to the bold product name — it read as part of the heading, and people
+   did not find the Manuals view at all. An inactive control still has to look
+   like a control. */
+.viewnav {
+  display: flex; gap: 2px; padding: 2px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+}
+.vtab {
+  background: transparent; border: none; color: var(--muted);
+  padding: 5px 14px; border-radius: 8px;
+  font-family: var(--ui); font-size: .82rem; font-weight: 500;
+  cursor: pointer; transition: background .13s, color .13s;
+}
+.vtab:hover { color: var(--text); background: var(--panel-2); }
+.vtab.active {
+  color: var(--text); background: var(--panel-3);
+  box-shadow: var(--shadow-1);
+}
+
+/* Cross-link to the customer widget. */
+.crosslink {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--muted); text-decoration: none;
+  font-family: var(--ui); font-size: .8rem; font-weight: 500;
+  padding: 6px 12px; border: 1px solid var(--line); border-radius: var(--r-pill);
+  white-space: nowrap;
+  transition: color .13s, background .13s, border-color .13s;
+}
+.crosslink:hover { color: var(--text); background: var(--panel-2); border-color: var(--line-2); }
+
+/* Metrics strip. Tabular figures so the numbers do not shuffle on refresh. */
+.stats { display: flex; gap: 26px; flex-wrap: wrap; }
+.stat { text-align: right; }
+.sval {
+  font-family: var(--ui); font-size: 1.05rem; font-weight: 700;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.sval.warn { color: var(--warn); }
+.slabel {
+  font-family: var(--ui); font-size: .62rem; font-weight: 600;
+  color: var(--faint); text-transform: uppercase; letter-spacing: .09em;
+  margin-top: 1px;
+}
+
+.body { flex: 1; display: grid; grid-template-columns: 348px 1fr; min-height: 0; }
+
+/* ---------------------------------------------------------------------------
+   Queue
+   --------------------------------------------------------------------------- */
+
+aside {
+  border-right: 1px solid var(--line); background: var(--panel);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.tabs {
+  display: flex; border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; background: var(--panel); z-index: 1;
+}
+.tab {
+  flex: 1; background: transparent; border: none; color: var(--muted);
+  padding: 12px 10px;
+  font-family: var(--ui); font-size: .82rem; font-weight: 500;
+  cursor: pointer; text-transform: capitalize;
+  border-bottom: 2px solid transparent;
+  transition: color .13s, border-color .13s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--volt); }
+
+.qitem {
+  padding: 13px 16px 13px 15px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer; position: relative;
+  transition: background .12s;
+}
+.qitem::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: -1px; width: 3px;
+  background: transparent; transition: background .12s;
+}
+.qitem:hover { background: var(--panel-2); }
+.qitem:hover::before { background: var(--line-2); }
+.qitem.sel { background: var(--panel-2); }
+.qitem.sel::before { background: var(--volt); }
+
+.qhead { display: flex; justify-content: space-between; align-items: center;
+         gap: 8px; margin-bottom: 6px; }
+.qname { font-family: var(--ui); font-weight: 600; font-size: .9rem; margin-bottom: 3px; }
+.clamp {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; line-height: 1.42;
+}
+
+/* ---------------------------------------------------------------------------
+   Handoff packet
+   --------------------------------------------------------------------------- */
+
+main { overflow-y: auto; }
+.empty { padding: clamp(2rem, 7vw, 4rem); max-width: 540px; color: var(--muted); }
+.empty h2 { font-family: var(--ui); font-size: 1.25rem; margin: 0 0 .5rem; color: var(--text); }
+
+.packet { padding: 24px clamp(1.25rem, 3vw, 2rem) 72px; max-width: 920px; }
+.pkthead {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 20px; flex-wrap: wrap;
+  padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 4px;
+}
+.pkthead h1 {
+  font-family: var(--ui); font-weight: 700; font-size: 1.4rem;
+  letter-spacing: -.015em; margin: 0 0 3px;
+}
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+section { margin-top: 24px; }
+section h3 {
+  margin: 0 0 12px;
+  font-family: var(--ui); font-size: .68rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .1em; color: var(--faint);
+  cursor: pointer; user-select: none;
+  display: flex; align-items: center; gap: 7px;
+}
+section h3:hover { color: var(--muted); }
+.caret { display: inline-block; transition: transform .16s; font-size: .8em; }
+.caret.open { transform: rotate(90deg); }
+
+.reason { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.next { margin-top: 10px; }
+
+.row {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 14px; flex-wrap: wrap;
+  padding: 11px 13px; border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--panel); margin-bottom: 8px;
+}
+.rowright { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ---- issue threads: the reason a handoff is worth anything ---------------- */
+
+.thread {
+  border: 1px solid var(--line); border-radius: var(--r);
+  padding: 15px 16px; background: var(--panel); margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.thread::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--line-2);
+}
+.thead { display: flex; justify-content: space-between; align-items: center;
+         gap: 10px; flex-wrap: wrap; }
+.thead strong { font-family: var(--ui); font-size: .95rem; }
+.symptom { margin: 9px 0; color: var(--text); }
+
+/* The diagnostic trail. What was asked, what came back, what it eliminated —
+   this is the whole reason a human does not have to start over. */
+.steps { margin: 12px 0 6px; padding-left: 18px; }
+.steps li { margin-bottom: 12px; }
+.steps li::marker { color: var(--faint); font-family: var(--mono); font-size: .82em; }
+.asked { line-height: 1.5; }
+.said {
+  color: var(--info); margin: 5px 0 0; padding-left: 11px;
+  border-left: 2px solid rgba(127, 196, 245, .35);
+  line-height: 1.5;
+}
+.concluded { color: var(--muted); font-size: .82rem; margin-top: 5px; }
+
+.ruled { font-size: .84rem; color: var(--muted); margin-top: 10px; }
+.resolution { color: var(--ok); font-size: .84rem; margin-top: 10px; }
+
+.cites { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.cite {
+  font-family: var(--mono); font-size: .68rem;
+  padding: 3px 9px; border-radius: var(--r-pill);
+  background: var(--info-wash); color: var(--info);
+  border: 1px solid rgba(127, 196, 245, .26);
+}
+
+/* ---- transcript --------------------------------------------------------- */
+
+.transcript { display: flex; flex-direction: column; gap: 9px; }
+.tline { display: flex; gap: 12px; font-size: .87rem; line-height: 1.5; }
+.who {
+  min-width: 76px; flex: none; color: var(--faint);
+  font-family: var(--ui); font-size: .62rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em; padding-top: 4px;
+}
+.tline.customer span:last-child { color: var(--info); }
+
+/* ---------------------------------------------------------------------------
+   Controls
+   --------------------------------------------------------------------------- */
+
+button {
+  background: var(--volt); color: var(--volt-ink);
+  border: 1px solid var(--volt); border-radius: var(--r-sm);
+  padding: 9px 16px;
+  font-family: var(--ui); font-size: .85rem; font-weight: 600;
+  cursor: pointer;
+  transition: background .13s, border-color .13s, transform .1s, opacity .13s;
+}
+button:hover:not(:disabled) { background: var(--volt-deep); border-color: var(--volt-deep); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .35; cursor: not-allowed; }
+
+button.ghost {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  font-weight: 500;
+}
+button.ghost:hover:not(:disabled) { background: var(--panel-3); border-color: var(--line-2); }
+
+.tinybtn { padding: 5px 11px; font-size: .76rem; }
+
+/* ---------------------------------------------------------------------------
+   Status vocabulary
+   --------------------------------------------------------------------------- */
+
+.badge {
+  font-family: var(--ui); font-size: .66rem; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+}
+.badge.ok   { background: var(--ok-wash);   color: var(--ok);   border-color: rgba(85,217,138,.3); }
+.badge.warn { background: var(--warn-wash); color: var(--warn); border-color: rgba(242,179,61,.3); }
+.badge.bad  { background: var(--bad-wash);  color: var(--bad);  border-color: rgba(242,118,107,.3); }
+.badge.info { background: var(--info-wash); color: var(--info); border-color: rgba(127,196,245,.3); }
+
+.muted { color: var(--muted); }
+.small { font-size: .82rem; }
+.tiny  { font-size: .72rem; }
+.pad   { padding: 18px; }
+.mono  { font-family: var(--mono); }
+
+/* ---------------------------------------------------------------------------
+   Manuals view — upload, backfill queue, ingestion jobs
+   --------------------------------------------------------------------------- */
+
+.body.single { grid-template-columns: 1fr; }
+/* The handoff packet is prose and reads better narrow; the manuals view is
+   tables and rows, so it gets the full width instead. */
+.body.single .packet { max-width: 1180px; }
+
+.dropzone {
+  border: 1.5px dashed var(--line-2); border-radius: var(--r-lg);
+  padding: 38px 20px; text-align: center; cursor: pointer;
+  background:
+    radial-gradient(28rem 12rem at 50% 0%, rgba(203, 247, 79, .04), transparent 70%),
+    var(--panel);
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.dropzone strong { font-family: var(--ui); font-size: 1rem; }
+.dropzone:hover { border-color: var(--volt-edge); }
+.dropzone.over {
+  border-color: var(--volt); border-style: solid;
+  background: var(--volt-wash); transform: scale(1.006);
+}
+.dropzone.busy { cursor: progress; opacity: .7; }
+.dropzone p { margin: 7px 0 0; }
+.dropzone .hint { color: var(--faint); font-size: .8rem; margin-top: 9px; }
+
+.targetbar {
+  display: flex; align-items: center; gap: 9px; margin-bottom: 12px;
+  padding: 10px 13px; border-radius: var(--r);
+  background: var(--info-wash); border: 1px solid rgba(127, 196, 245, .32);
+  font-size: .87rem; flex-wrap: wrap;
+}
+
+.uploaderr {
+  margin-top: 12px; padding: 11px 13px; border-radius: var(--r); font-size: .85rem;
+  background: var(--bad-wash); border: 1px solid rgba(242, 118, 107, .35);
+  color: var(--bad);
+}
+
+.mismatch {
+  margin-top: 10px; padding: 10px 13px; border-radius: var(--r); font-size: .85rem;
+  background: var(--warn-wash); border: 1px solid rgba(242, 179, 61, .38);
+  color: var(--warn);
+}
+
+.jobrow {
+  border: 1px solid var(--line); border-radius: var(--r);
+  padding: 13px 14px; background: var(--panel); margin-bottom: 10px;
+}
+.jobhead { display: flex; justify-content: space-between; align-items: flex-start;
+           gap: 12px; flex-wrap: wrap; }
+.jobhead strong { font-family: var(--ui); font-size: .9rem; word-break: break-all; }
+.jobresult {
+  display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;
+  margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line);
+  font-size: .78rem; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.spinner {
+  width: 13px; height: 13px; border-radius: 50%; flex: none;
+  border: 2px solid var(--line); border-top-color: var(--volt);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.picker { margin-top: 12px; }
+.picker input {
+  width: 100%; max-width: 390px; padding: 9px 12px; border-radius: var(--r-sm);
+  border: 1px solid var(--line); background: var(--bg); color: var(--text);
+  font: inherit; font-size: .87rem;
+}
+.picker input:focus {
+  outline: none; border-color: var(--volt-edge);
+  box-shadow: 0 0 0 3px var(--volt-wash);
+}
+.picker .options { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+
+/* ---------------------------------------------------------------------------
+   Narrow screens. The console is a desktop tool, but it should not shatter.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .stats { gap: 18px; }
+  .body { grid-template-columns: 300px 1fr; }
+}
+
+@media (max-width: 860px) {
+  .body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 40%) 1fr; }
+  aside { border-right: none; border-bottom: 1px solid var(--line); }
+  .stats { display: none; }
+}

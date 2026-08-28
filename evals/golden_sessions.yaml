@@ -1,0 +1,123 @@
+# Golden sessions.
+#
+# Assertions are on OUTCOMES, never on wording. Asserting phrasing would break on
+# every prompt tweak and would teach us nothing about whether the agent works.
+# What we care about is: did it identify the right machine, did it scope
+# retrieval correctly, did it reach a sensible terminal state, and did the right
+# escalation trigger fire.
+#
+# `customer` selectors are resolved against the seeded database at run time, so
+# these sessions survive a re-seed.
+
+- id: identification_gate_holds
+  description: >
+    A customer with several machines must be asked which one before any
+    troubleshooting happens. Proceeding on a guess is the worst failure mode in
+    the system, so this is the first thing we check.
+  customer: { owns_multiple: true }
+  turns:
+    - say: "my machine is making a horrible noise"
+      expect:
+        no_issue_opened: true
+        reply_contains_any: ["which one", "which machine", "machines on your account"]
+  expect_final:
+    issue_count: 0
+
+- id: single_machine_goes_straight_to_diagnosis
+  description: >
+    With exactly one machine on the account there is nothing to disambiguate, so
+    the agent should open the issue and give a real diagnostic step immediately.
+  customer: { owns_exactly: 1, coverage: backed }
+  turns:
+    - say: "my machine is making a loud grinding noise when I use it"
+      expect:
+        issue_count: 1
+        issue_status: diagnosing
+        has_citations: true
+  expect_final:
+    issue_count: 1
+
+- id: retrieval_is_scoped_to_the_right_manual
+  description: >
+    The citations returned must belong to the customer's own model. This is the
+    cross-contamination guard, checked end to end rather than at the SQL layer.
+  customer: { owns_exactly: 1, coverage: backed }
+  turns:
+    - say: "there is a loud squeaking noise coming from it"
+      expect:
+        citations_belong_to_issue_model: true
+
+- id: safety_stops_before_any_model_call
+  description: >
+    Smoke or burning must escalate immediately, with no diagnostic step offered
+    and no LLM involved in the decision.
+  customer: { owns_exactly: 1 }
+  turns:
+    - say: "there is smoke coming out of the back of the machine and it smells like burning"
+      expect:
+        escalated: true
+        escalation_reason: safety
+        trace_contains: "precheck:safety=critical"
+
+- id: human_request_is_honoured_immediately
+  description: >
+    Asking for a person is never argued with and never routed through a
+    retention prompt.
+  customer: { owns_exactly: 1 }
+  turns:
+    - say: "I just want to speak to a human please"
+      expect:
+        escalated: true
+        escalation_reason: customer_request
+
+- id: unbacked_model_refuses_to_guess
+  description: >
+    With no manual indexed for the model, the agent must escalate rather than
+    improvise. This is the cold-start behaviour that makes coverage gaps safe.
+  customer: { coverage: unbacked }
+  turns:
+    - say: "the belt on my machine keeps slipping badly"
+      expect:
+        escalated: true
+        escalation_reason: no_coverage
+
+- id: error_code_uses_symbolic_lookup
+  description: >
+    A console error code is a keyed read, not a similarity search. The reply
+    should carry that code's actual meaning from the extracted table.
+  customer: { owns_exactly: 1, coverage: backed, has_error_codes: true }
+  turns:
+    - say: "the display is showing error {error_code}"
+      expect:
+        trace_contains: "diagnose:error-code"
+        reply_contains_any: ["{error_code}"]
+
+- id: multi_issue_threads_stay_separate
+  description: >
+    The core multi-issue requirement. Two machines, two threads, each retrieving
+    from its own manual, neither losing the other's state.
+  customer: { owns_multiple: true, all_backed: true }
+  turns:
+    - say: "my {machine_1} is making a grinding noise"
+      expect:
+        issue_count: 1
+    - say: "actually my {machine_2} is also playing up, it will not turn on"
+      expect:
+        issue_count: 2
+        issues_have_distinct_models: true
+        citations_belong_to_issue_model: true
+  expect_final:
+    issue_count: 2
+    distinct_models: 2
+
+- id: out_of_warranty_part_is_priced_not_given
+  description: >
+    The deterministic commerce path: catalog lookup, warranty verdict, and a
+    quote whose figures come from the database rather than the model.
+  customer: { owns_exactly: 1, coverage: backed, out_of_warranty: true }
+  turns:
+    - say: "can I order a replacement {part_name} for it"
+      expect:
+        quote_created: true
+        quote_covered: false
+        quote_total_positive: true

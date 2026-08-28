@@ -1,0 +1,233 @@
+# ---------------------------------------------------------------------------
+# FitForge agentic support — full local stack. Every service is open source and
+# self-hosted; nothing here calls a paid API.
+#
+#   docker compose up -d              core stack
+#   docker compose --profile obs up -d  adds self-hosted Langfuse tracing
+# ---------------------------------------------------------------------------
+
+name: fitforge
+
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fitforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fitforge}
+      POSTGRES_DB: ${POSTGRES_DB:-fitforge}
+    ports:
+      # Host 5432/6379 are commonly already taken (a local Postgres, a WSL
+      # relay). Container-internal ports are unchanged, so only host tooling
+      # needs to know about the offset.
+      - "55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Applied automatically on first boot of an empty data volume.
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitforge} -d ${POSTGRES_DB:-fitforge}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    ports:
+      - "56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Local LLM + embedding server. CPU-only here (the host GPU is a 1 GB GT 710,
+  # which cannot hold a useful model); swap LLM_BASE_URL to point at vLLM or any
+  # other OpenAI-compatible server without touching application code.
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: "30m"
+      OLLAMA_NUM_PARALLEL: "2"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # One-shot: pulls the models named in .env, then exits.
+  ollama-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      LLM_MODEL: ${LLM_MODEL:-qwen2.5:3b-instruct}
+      LLM_ROUTER_MODEL: ${LLM_ROUTER_MODEL:-qwen2.5:1.5b-instruct}
+      EMBED_MODEL: ${EMBED_MODEL:-nomic-embed-text}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        for m in "$$LLM_MODEL" "$$LLM_ROUTER_MODEL" "$$EMBED_MODEL"; do
+          echo "==> pulling $$m"
+          ollama pull "$$m"
+        done
+        echo "==> models ready"
+    restart: "no"
+
+  # Stands in for a real payment service provider. Models a tokenized /
+  # hosted-fields flow, so no card data ever reaches our code or the LLM.
+  mockpsp:
+    build:
+      context: .
+      dockerfile: services/mockpsp/Dockerfile
+    ports:
+      - "8090:8090"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8090/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitforge}:${POSTGRES_PASSWORD:-fitforge}@postgres:5432/${POSTGRES_DB:-fitforge}
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services:/app/services
+      - ./db:/app/db:ro
+      - ./seed:/app/seed
+      - ./evals:/app/evals
+      - ./tests:/app/tests
+      - ./data:/app/data
+    depends_on:
+      postgres:  { condition: service_healthy }
+      redis:     { condition: service_healthy }
+      mockpsp:   { condition: service_started }
+    command: >
+      uvicorn services.api.app.main:app
+      --host 0.0.0.0 --port 8000 --reload --reload-dir /app/services
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  # Both UIs, one origin:
+  #   http://localhost:5173/          customer chat widget
+  #   http://localhost:5173/console/  human-agent console
+  #
+  # The dev server also proxies /api and /ws through to the API, so the browser
+  # talks to a single port and there is no CORS surface at all. The API stays
+  # published on 8000 for curl, pytest and the seed tooling.
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web/src:/app/src
+      - ./web/index.html:/app/index.html:ro
+      - ./web/console/index.html:/app/console/index.html:ro
+    environment:
+      API_ORIGIN: http://api:8000
+    depends_on:
+      - api
+
+  # ---- Optional observability profile -------------------------------------
+  # Langfuse v3 needs Clickhouse + MinIO, so it sits behind a profile to keep
+  # the default `docker compose up` light. The app degrades gracefully: if
+  # LANGFUSE_ENABLED=false we still record every call to the llm_calls table.
+  langfuse-db:
+    image: postgres:17-alpine
+    profiles: ["obs"]
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfusedb:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      retries: 20
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    profiles: ["obs"]
+    environment:
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_DB: default
+    volumes:
+      - clickhouse:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"]
+      interval: 10s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    profiles: ["obs"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniosecret
+    volumes:
+      - minio:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 0"]
+      interval: 10s
+      retries: 10
+
+  langfuse:
+    image: langfuse/langfuse:3
+    profiles: ["obs"]
+    depends_on:
+      langfuse-db: { condition: service_healthy }
+      clickhouse:  { condition: service_healthy }
+      minio:       { condition: service_started }
+      redis:       { condition: service_healthy }
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: local-dev-secret-change-me
+      SALT: local-dev-salt-change-me
+      ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: clickhouse
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      REDIS_CONNECTION_STRING: redis://redis:6379/1
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: miniosecret
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_INIT_ORG_ID: fitforge
+      LANGFUSE_INIT_PROJECT_ID: fitforge-support
+
+volumes:
+  pgdata:
+  ollama:
+  langfusedb:
+  clickhouse:
+  minio:

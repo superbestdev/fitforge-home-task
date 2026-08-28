@@ -1,0 +1,15 @@
+{
+  "name": "fitforge-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "chat": "node chat.mjs ./shots",
+    "console": "node console.mjs ./shots ../../data/sample/FitForge_Sample_Service_Manual.pdf",
+    "payment": "node payment.mjs ./shots",
+    "all": "npm run chat && npm run console && npm run payment"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

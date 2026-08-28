@@ -1,0 +1,101 @@
+/* ---------------------------------------------------------------------------
+   FitForge — shared visual identity for both the customer widget and the
+   agent console.
+
+   The palette is warm charcoal rather than the usual blue-grey, with a single
+   saturated accent. The accent means one thing and only one thing: THIS IS
+   YOURS TO ACT ON. Send button, primary call to action, the customer's own
+   messages. Nothing decorative ever takes it, which is what keeps it reading
+   as a signal instead of a brand smear.
+
+   Status colour is a separate system — success, warning, danger and info never
+   borrow the accent, so "urgent" and "on-brand" can never be confused.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* surfaces, warm-biased so the accent sits naturally on them */
+  --bg:        #0A0B0D;
+  --panel:     #121317;
+  --panel-2:   #1A1C21;
+  --panel-3:   #23262C;
+  --line:      #292C33;
+  --line-2:    #3A3E47;
+
+  /* type — bone rather than pure white; reads considered, not clinical */
+  --text:      #F1EFEB;
+  --muted:     #9A9BA0;
+  --faint:     #6A6C73;
+
+  /* the one accent */
+  --volt:      #CBF74F;
+  --volt-deep: #A9D239;
+  --volt-ink:  #10130A;
+  --volt-wash: rgba(203, 247, 79, .12);
+  --volt-edge: rgba(203, 247, 79, .32);
+
+  /* status — deliberately distinct from the accent */
+  --ok:        #55D98A;
+  --ok-wash:   rgba(85, 217, 138, .13);
+  --warn:      #F2B33D;
+  --warn-wash: rgba(242, 179, 61, .13);
+  --bad:       #F2766B;
+  --bad-wash:  rgba(242, 118, 107, .13);
+  --info:      #7FC4F5;
+  --info-wash: rgba(127, 196, 245, .13);
+
+  --r-sm: 8px;
+  --r:    12px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-2: 0 4px 16px -6px rgba(0, 0, 0, .55);
+  --shadow-3: 0 18px 48px -20px rgba(0, 0, 0, .85);
+
+  --ui:   Archivo, "Helvetica Neue", Arial, sans-serif;
+  --body: Manrope, ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Focus is a product surface too — never remove it, always make it obvious. */
+:focus-visible {
+  outline: 2px solid var(--volt);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection { background: var(--volt); color: var(--volt-ink); }
+
+/* Scrollbars, so the dark surfaces do not get a bright system gutter. */
+* { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--line-2); border-radius: var(--r-pill);
+  border: 3px solid transparent; background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-clip: content-box; background-color: var(--faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

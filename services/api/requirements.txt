@@ -1,0 +1,48 @@
+# --- web / api -------------------------------------------------------------
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+# Range rather than a hard pin: ocrmypdf 17 requires a newer pydantic than
+# 2.10, and over-pinning here makes the OCR upgrade unresolvable.
+pydantic>=2.11,<3
+pydantic-settings>=2.7,<3
+websockets==14.1
+httpx==0.28.1
+python-multipart==0.0.20
+
+# --- data ------------------------------------------------------------------
+psycopg[binary,pool]==3.2.3
+pgvector==0.3.6
+redis==5.2.1
+
+# --- agent orchestration ---------------------------------------------------
+langgraph==0.2.60
+langgraph-checkpoint-postgres==2.0.9
+
+# --- llm client (OpenAI-compatible: talks to Ollama, vLLM, llama.cpp, ...) --
+openai==1.59.6
+
+# --- document ingestion ----------------------------------------------------
+# pypdfium2 is BSD-3/Apache-2.0. Deliberately NOT PyMuPDF, which is AGPL and a
+# licensing hazard for a commercial support product. See docs/03-tech-stack.md.
+pypdfium2==5.13.0
+# ocrmypdf 17.x is the line that supports pikepdf 10. Pinning both together:
+# 16.x calls Pdf.check(), which pikepdf 10 removed, and the failure surfaces
+# only at the very end of an otherwise successful OCR run.
+ocrmypdf==17.10.0
+pikepdf==10.12.0
+pillow==11.1.0
+
+# --- synthetic corpus generation ------------------------------------------
+reportlab==4.2.5
+faker==33.1.0
+
+# --- observability (optional; app runs with LANGFUSE_ENABLED=false) --------
+langfuse==2.57.0
+
+# --- evals -----------------------------------------------------------------
+pyyaml==6.0.2
+
+# --- dev / test ------------------------------------------------------------
+pytest==8.3.4
+pytest-asyncio==0.25.0
+anyio==4.7.0

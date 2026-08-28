@@ -1,0 +1,26 @@
+.env
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+node_modules/
+dist/
+.vite/
+web/e2e/shots/
+web/e2e/package-lock.json
+
+# Generated corpora + volumes
+data/manuals/
+data/ocr_cache/
+data/*.json
+.volumes/
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
