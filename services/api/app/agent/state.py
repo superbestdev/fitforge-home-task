@@ -251,6 +251,20 @@ def load_active_issue_id(session_id: str) -> str | None:
     return str(row["id"]) if row else None
 
 
+def touch_issue(issue_id: str) -> None:
+    """Mark a thread as the one we are working, without changing its content.
+
+    `load_active_issue_id` resolves the active thread by `updated_at DESC`, and
+    every other write path stamps that column through `save_issue`. Resuming a
+    suspended thread changes no field on it, so without this the switch lives
+    only in graph state: the next customer message re-derives the active thread
+    from the database, finds the *other* one more recently updated, and answers on
+    it. The customer sees the agent agree to go back and then carry on with the
+    wrong machine.
+    """
+    execute("UPDATE issue_threads SET updated_at = now() WHERE id = %s", (issue_id,))
+
+
 def create_issue(session_id: str, *, title: str, symptom_summary: str,
                  model_id: str | None = None) -> IssueThread:
     seq_row = query_one(

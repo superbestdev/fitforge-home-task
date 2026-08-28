@@ -69,6 +69,7 @@ switch ($Task.ToLower()) {
             @('reingest', 'Rebuild the whole index from scratch'),
             @('demo',     'Scripted multi-issue session, end to end'),
             @('sample',   'Generate a realistic sample manual PDF for upload testing'),
+            @('demo-reset','Reset the demo (unback the bike, clear its sessions) for a re-take'),
             @('test',     'Run the test suite'),
             @('eval',     'Replay the golden sessions'),
             @('e2e',      'Browser tests: drives both UIs in real Chromium'),
@@ -122,6 +123,12 @@ switch ($Task.ToLower()) {
         Write-Host ''
         Write-Host 'Drop it into the agent console -> Manuals:' -ForegroundColor Cyan
         Write-Host '  data\sample\FitForge_Sample_Service_Manual.pdf' -ForegroundColor Cyan
+    }
+    'demo-reset' {
+        Invoke-Cmd ($RunApi + @('python', '-m', 'seed.demo_reset'))
+        Write-Host ''
+        Write-Host 'Ready for another take. Upload this again when you get to Act 2:' -ForegroundColor Cyan
+        Write-Host '  data\sample\FitForge_Sample_Bike_Manual.pdf' -ForegroundColor Cyan
     }
     'test'     { Invoke-Cmd ($RunApi + @('python', '-m', 'pytest', 'tests/', '-q')) }
     'eval'     { Invoke-Cmd ($RunApi + @('python', '-m', 'evals.run_golden')) }

@@ -53,13 +53,22 @@ def select_part(s: GraphState) -> dict:
     fault = (s.get("_suspected_fault") or issue.symptom_summary
              or issue.title)
 
-    candidates = catalog.find_parts_for_symptom(
-        model_id=issue.model_id, symptom=fault,
-    )
-    if not candidates:
+    # A customer who asks for a named part outranks the diagnosed fault. The
+    # thread's symptom is the right default when the agent reached the part by
+    # troubleshooting, but "order me a new pedal set" is not a symptom — and
+    # answering it with whatever the thread was about is how you ship someone a
+    # display they never asked for.
+    attempts = [fault, issue.title]
+    if s.get("intent") == "commerce":
+        attempts.insert(0, s["customer_message"])
+
+    candidates: list = []
+    for attempt in attempts:
         candidates = catalog.find_parts_for_symptom(
-            model_id=issue.model_id, symptom=issue.title,
+            model_id=issue.model_id, symptom=attempt,
         )
+        if candidates:
+            break
 
     if not candidates:
         return {

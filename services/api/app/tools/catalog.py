@@ -84,13 +84,24 @@ def find_parts_for_symptom(*, model_id: str, symptom: str,
                             ), 0)
                        FROM unnest(p.symptom_tags) AS tag
                    ) AS tag_score,
-                   similarity(lower(p.name), %(text)s) AS name_sim
+                   similarity(lower(p.name), %(text)s) AS name_sim,
+                   -- Trigram similarity against the whole sentence collapses as
+                   -- the sentence gets longer: "pedal set" against "can I just
+                   -- order a new pedal set for the Velodrome" scores near zero,
+                   -- so a customer naming the exact part gets no credit for it.
+                   -- Word overlap against the part name is length-independent.
+                   (
+                     SELECT count(*) FILTER (WHERE nw = ANY(%(words)s))::float
+                            / GREATEST(count(*), 1)
+                       FROM unnest(string_to_array(lower(p.name), ' ')) AS nw
+                   ) AS name_word_score
               FROM parts p
              WHERE p.model_id = %(model_id)s
         )
         SELECT * FROM scored
-         WHERE tag_score >= 0.5 OR name_sim > 0.3
-         ORDER BY tag_score DESC, name_sim DESC, price_cents ASC
+         WHERE tag_score >= 0.5 OR name_sim > 0.3 OR name_word_score >= 0.5
+         ORDER BY GREATEST(tag_score, name_word_score) DESC,
+                  name_sim DESC, price_cents ASC
          LIMIT %(limit)s
         """,
         {"text": text, "words": words, "model_id": model_id, "limit": limit},

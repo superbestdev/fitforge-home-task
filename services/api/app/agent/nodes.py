@@ -531,6 +531,10 @@ def switch_issue(s: GraphState) -> dict:
                 if target.ruled_out else "")
              + "Let us pick up where we left off.")
 
+    # Persist the switch. Returning active_issue_id alone only holds for this
+    # turn; the next message reloads the active thread from the database.
+    state.touch_issue(target.id)
+
     return {
         "active_issue_id": target.id,
         "reply": recap,
