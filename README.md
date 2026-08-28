@@ -185,6 +185,10 @@ docs/                   the five case-study deliverables + four bonus topics
 4. [Trade-offs](docs/04-tradeoffs.md) — what was rejected, what was given up
 5. [Risks and assumptions](docs/05-risks-assumptions.md) — where it fails
 
+**Recording a demo**
+
+- [Demo script](docs/demo-script.md) — a rehearsed scenario covering every requirement, with real timings
+
 **Bonus topics**
 
 6. [Observability and quality](docs/06-observability.md)
