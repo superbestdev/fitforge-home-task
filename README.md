@@ -55,6 +55,7 @@ Then open:
 |---|---|
 | Customer chat | http://localhost:5173 |
 | Agent console | http://localhost:5173/console |
+| Architecture overview | http://localhost:5173/docs |
 | API docs | http://localhost:8000/docs |
 
 Other useful targets: `test`, `eval`, `e2e` (browser tests), `metrics`,
@@ -142,9 +143,10 @@ services/
     main.py             FastAPI: chat WS, console, metrics
   ingest/               extract · ocr · chunk · embed · pipeline
   mockpsp/              stand-in payment provider
-web/                    one Vite app, two documents:
+web/                    one Vite app, three documents:
   src/chat/             customer widget        served at /
   src/console/          agent console          served at /console
+  docs/index.html       architecture overview  served at /docs
 evals/                  golden sessions + the multi-issue demo
 tests/                  56 tests over the deterministic paths
 web/e2e/                Playwright tests that drive both UIs in a real browser

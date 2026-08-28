@@ -97,6 +97,7 @@ export default function App() {
                     onClick={() => setView('manuals')}>Manuals</button>
           </nav>
           <a className="crosslink" href="/">← Customer chat</a>
+          <a className="crosslink" href="/docs/">Docs</a>
         </div>
         {metrics && (
           <div className="stats">

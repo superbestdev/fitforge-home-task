@@ -128,9 +128,10 @@ services:
       retries: 12
       start_period: 20s
 
-  # Both UIs, one origin:
+  # Everything on one origin:
   #   http://localhost:5173/          customer chat widget
   #   http://localhost:5173/console/  human-agent console
+  #   http://localhost:5173/docs/     architecture overview
   #
   # The dev server also proxies /api and /ws through to the API, so the browser
   # talks to a single port and there is no CORS surface at all. The API stays
@@ -145,6 +146,7 @@ services:
       - ./web/src:/app/src
       - ./web/index.html:/app/index.html:ro
       - ./web/console/index.html:/app/console/index.html:ro
+      - ./web/docs/index.html:/app/docs/index.html:ro
     environment:
       API_ORIGIN: http://api:8000
     depends_on:

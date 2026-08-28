@@ -2,9 +2,10 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// Both UIs are served by this one dev server as separate documents:
+// Everything is served by this one dev server as separate documents:
 //   /          -> index.html          -> src/chat
 //   /console/  -> console/index.html  -> src/console
+//   /docs/     -> docs/index.html     -> a static page, no bundle
 //
 // They stay separate documents rather than becoming one SPA with a router
 // because their stylesheets are independent and share plenty of generic class
@@ -23,6 +24,9 @@ export default defineConfig({
       input: {
         chat: resolve(__dirname, 'index.html'),
         console: resolve(__dirname, 'console/index.html'),
+        // Plain HTML with an inline stylesheet — no module graph of its own,
+        // but it still needs to be an entry or `vite build` drops it.
+        docs: resolve(__dirname, 'docs/index.html'),
       },
     },
   },

@@ -276,6 +276,7 @@ docker compose up -d --build      # or:  .\run.ps1 up
 |---|---|
 | Customer chat | http://localhost:5173 |
 | Agent console | http://localhost:5173/console |
+| This page, rendered | http://localhost:5173/docs |
 | API docs | http://localhost:8000/docs |
 
 Then `models`, `seed`, `ingest`. The console's **Manuals** tab accepts PDF uploads

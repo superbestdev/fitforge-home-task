@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitForge Support Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;700&display=swap">
+    <style>
+/* ---------------------------------------------------------------------------
+   Palette encodes the thesis: STEEL = deterministic code and SQL,
+   AMBER = the language model. Every marker on the page uses one or the other,
+   so "where does the model touch this?" is answerable at a glance.
+   --------------------------------------------------------------------------- */
+:root {
+  --paper:      #F5F7F9;
+  --surface:    #FFFFFF;
+  --sunk:       #EDF0F4;
+  --ink:        #151A21;
+  --ink-soft:   #4E5A68;
+  --ink-faint:  #7A8794;
+  --rule:       #D8DEE6;
+  --rule-soft:  #E6EAF0;
+
+  --steel:      #1D4E89;
+  --steel-bg:   #E5EDF7;
+  --amber:      #9A5B00;
+  --amber-bg:   #F8EDDA;
+  --danger:     #A32B1E;
+
+  --shadow:     0 1px 2px rgba(21, 26, 33, .05), 0 8px 24px -12px rgba(21, 26, 33, .18);
+
+  --measure: 68ch;
+  --pad: clamp(1.15rem, 4vw, 2.75rem);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:     #0E1216;
+    --surface:   #161C23;
+    --sunk:      #1B222B;
+    --ink:       #E3E8EE;
+    --ink-soft:  #A3AFBC;
+    --ink-faint: #7A8794;
+    --rule:      #2B343E;
+    --rule-soft: #232B34;
+
+    --steel:     #82B0E4;
+    --steel-bg:  #16283D;
+    --amber:     #E0A651;
+    --amber-bg:  #33260F;
+    --danger:    #E58275;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:     #0E1216;
+  --surface:   #161C23;
+  --sunk:      #1B222B;
+  --ink:       #E3E8EE;
+  --ink-soft:  #A3AFBC;
+  --ink-faint: #7A8794;
+  --rule:      #2B343E;
+  --rule-soft: #232B34;
+
+  --steel:     #82B0E4;
+  --steel-bg:  #16283D;
+  --amber:     #E0A651;
+  --amber-bg:  #33260F;
+  --danger:    #E58275;
+
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -14px rgba(0,0,0,.7);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 var(--pad) 5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+/* ---- masthead ---------------------------------------------------------- */
+
+.mast {
+  border-bottom: 2px solid var(--ink);
+  padding: clamp(2.5rem, 7vw, 4.5rem) 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.docline {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .7rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+}
+
+h1 {
+  font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.1rem, 6.5vw, 3.9rem);
+  line-height: 1.02;
+  letter-spacing: -.022em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.standfirst {
+  font-size: clamp(1.05rem, 2.2vw, 1.28rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 46ch;
+  margin: 0;
+}
+
+/* ---- the legend: teaches the colour code before anything uses it ------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem 1.75rem;
+  padding: 1rem 1.15rem;
+  margin-top: .5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-family: Archivo, sans-serif;
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+.legend b { color: var(--ink); font-weight: 600; }
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+}
+.dot {
+  width: .72rem; height: .72rem;
+  border-radius: 2px;
+  flex: none;
+}
+.dot.d { background: var(--steel); }
+.dot.m { background: var(--amber); }
+
+/* ---- body sections ----------------------------------------------------- */
+
+section {
+  padding-top: clamp(2.5rem, 6vw, 3.75rem);
+}
+
+h2 {
+  font-family: Archivo, sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  letter-spacing: -.012em;
+  line-height: 1.15;
+  margin: 0 0 .35rem;
+  text-wrap: balance;
+  display: flex;
+  align-items: baseline;
+  gap: .85rem;
+}
+h2 .num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: .72rem;
+  font-weight: 500;
+  color: var(--ink-faint);
+  letter-spacing: .08em;
+  flex: none;
+  padding-top: .15rem;
+}
+
+h3 {
+  font-family: Archivo, sans-serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: .005em;
+  margin: 2rem 0 .5rem;
+  color: var(--ink);
+}
+
+p { max-width: var(--measure); margin: 0 0 1rem; }
+.lede { color: var(--ink-soft); }
+
+a { color: var(--steel); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible, .key:focus-visible {
+  outline: 2px solid var(--steel);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .855em;
+  background: var(--sunk);
+  padding: .1em .34em;
+  border-radius: 2px;
+}
+
+strong { font-weight: 600; }
+
+/* ---- the pull quote: the one flourish on the page ---------------------- */
+
+.principle {
+  margin: 2.25rem 0 .5rem;
+  padding: 1.6rem 0 1.6rem 1.6rem;
+  border-left: 3px solid var(--ink);
+  max-width: 54ch;
+}
+.principle p {
+  font-size: clamp(1.15rem, 2.6vw, 1.42rem);
+  line-height: 1.36;
+  margin: 0;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.principle .never { color: var(--ink-soft); font-weight: 400; font-style: italic; }
+
+/* ---- requirement list -------------------------------------------------- */
+
+ol.reqs {
+  list-style: none;
+  counter-reset: r;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+ol.reqs li {
+  counter-increment: r;
+  background: var(--surface);
+  padding: .95rem 1.15rem .95rem 3.1rem;
+  position: relative;
+}
+ol.reqs li::before {
+  content: counter(r);
+  position: absolute;
+  left: 1.15rem;
+  top: 1.02rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: .74rem;
+  font-weight: 700;
+  color: var(--steel);
+}
+ol.reqs b { font-family: Archivo, sans-serif; font-weight: 600; font-size: .97rem; }
+
+/* ---- flow: the two timelines ------------------------------------------- */
+
+.flow {
+  margin: 1.25rem 0 0;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.flow-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .8rem 1.15rem;
+  background: var(--sunk);
+  border-bottom: 1px solid var(--rule);
+  font-family: Archivo, sans-serif;
+}
+.flow-head b { font-size: .95rem; font-weight: 600; }
+.flow-head span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 3px 8.5rem 1fr;
+  align-items: start;
+  gap: 0 1rem;
+  padding: .72rem 1.15rem .72rem 0;
+  border-top: 1px solid var(--rule-soft);
+}
+.flow .step:first-of-type { border-top: 0; }
+.step .bar { align-self: stretch; border-radius: 0 2px 2px 0; }
+.step.d .bar { background: var(--steel); }
+.step.m .bar { background: var(--amber); }
+
+.step .name {
+  font-family: "JetBrains Mono", monospace;
+  font-size: .8rem;
+  font-weight: 500;
+  padding-top: .12rem;
+  word-break: break-word;
+}
+.step.d .name { color: var(--steel); }
+.step.m .name { color: var(--amber); }
+.step .what { font-size: .94rem; line-height: 1.48; color: var(--ink-soft); }
+.step .what b { color: var(--ink); font-weight: 600; }
+
+.step.exit { background: var(--sunk); }
+.step.exit .what b { color: var(--danger); }
+
+@media (max-width: 34rem) {
+  .step { grid-template-columns: 3px 1fr; gap: 0 .85rem; }
+  .step .name { grid-column: 2; }
+  .step .what { grid-column: 2; padding-top: .15rem; }
+}
+
+.gate {
+  padding: .8rem 1.15rem .8rem calc(1.15rem + 3px);
+  border-top: 1px solid var(--rule-soft);
+  border-bottom: 1px solid var(--rule-soft);
+  background: var(--steel-bg);
+  font-family: Archivo, sans-serif;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.gate em { font-weight: 400; font-style: normal; color: var(--ink-soft); display: block; font-size: .87rem; margin-top: .15rem; }
+
+/* ---- tables ------------------------------------------------------------ */
+
+.tablewrap { overflow-x: auto; margin: 1.25rem 0 0; border: 1px solid var(--rule); border-radius: 3px; }
+table { border-collapse: collapse; width: 100%; min-width: 34rem; background: var(--surface); }
+th, td { text-align: left; padding: .68rem .95rem; border-top: 1px solid var(--rule-soft); vertical-align: top; }
+thead th {
+  border-top: 0;
+  background: var(--sunk);
+  font-family: Archivo, sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+td { font-size: .93rem; line-height: 1.45; }
+td.mono, .tabular { font-family: "JetBrains Mono", monospace; font-size: .8rem; font-variant-numeric: tabular-nums; }
+td.mono.m { color: var(--amber); }
+td .sub { display: block; color: var(--ink-faint); font-size: .85em; font-family: "Source Serif 4", Georgia, serif; margin-top: .1rem; }
+span.sub { color: var(--ink-faint); font-size: .9em; }
+td.mono.d { color: var(--steel); }
+
+/* ---- code / tree ------------------------------------------------------- */
+
+pre {
+  margin: 1.25rem 0 0;
+  padding: 1.1rem 1.15rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow-x: auto;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: .785rem;
+  line-height: 1.62;
+  color: var(--ink-soft);
+  tab-size: 2;
+}
+pre b { color: var(--ink); font-weight: 700; }
+pre i { color: var(--ink-faint); font-style: normal; }
+pre .hd { color: var(--steel); font-weight: 500; }
+pre .hm { color: var(--amber); font-weight: 500; }
+
+/* ---- caveats ----------------------------------------------------------- */
+
+.limits {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.limits li { background: var(--surface); padding: .95rem 1.15rem; }
+.limits b { font-family: Archivo, sans-serif; font-weight: 600; font-size: .95rem; display: block; margin-bottom: .1rem; }
+.limits span { font-size: .93rem; color: var(--ink-soft); line-height: 1.5; }
+
+/* ---- footer ------------------------------------------------------------ */
+
+footer {
+  margin-top: clamp(3rem, 7vw, 4.5rem);
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+  justify-content: space-between;
+}
+
+/* ---- in-app navigation (not present in the published copy) ------------- */
+
+.appnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding: .75rem 0 0;
+  font-family: Archivo, sans-serif;
+  font-size: .8rem;
+}
+.appnav a, .appnav span {
+  padding: 5px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.appnav a:hover { color: var(--ink); background: var(--sunk); border-color: var(--ink-faint); }
+.appnav span[aria-current] { color: var(--ink); background: var(--sunk); font-weight: 600; }
+</style>
+  </head>
+  <body>
+  <nav class="appnav">
+    <a href="/">Customer chat</a>
+    <a href="/console/">Agent console</a>
+    <span aria-current="page">Docs</span>
+  </nav>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="docline">
+      <span>FitForge Service Operations</span>
+      <span>Doc 00 · Overview</span>
+      <span>Self-hosted · No paid services</span>
+    </div>
+    <h1>Agentic support for a catalog that will not fit in a prompt</h1>
+    <p class="standfirst">Three hundred SKUs, three hundred service manuals, and a
+      three-billion-parameter model on a CPU. This is where the line between them sits.</p>
+    <div class="legend">
+      <span class="key"><span class="dot d"></span><b>Deterministic</b> — Python and SQL</span>
+      <span class="key"><span class="dot m"></span><b>Language model</b> — four call sites</span>
+      <span>Every marker below is one or the other.</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">01</span> What it is for</h2>
+    <p class="lede">FitForge sells home fitness equipment direct to consumers. Every model
+      carries its own service manual, parts catalog and warranty terms. Customers arrive in
+      chat with a broken machine and expect support to know which machine that is.</p>
+    <p>The system has five jobs.</p>
+    <ol class="reqs">
+      <li><b>Identify the exact model first.</b> Every fact downstream — troubleshooting
+        steps, part numbers, warranty terms — is keyed on it.</li>
+      <li><b>Troubleshoot iteratively.</b> One check at a time, interpret the answer,
+        continue until the fault is fixed or provably unfixable.</li>
+      <li><b>Handle the parts path.</b> Check warranty, take payment when the part is not
+        covered, ship to the address on file.</li>
+      <li><b>Track unrelated problems at once.</b> Customers raise a treadmill fault and a
+        bike fault in the same breath.</li>
+      <li><b>Hand off with nothing lost.</b> When it cannot resolve an issue, a human
+        inherits the full context.</li>
+    </ol>
+    <p style="margin-top:1.25rem">It runs entirely on open-source software, self-hosted, with
+      no external API calls. The reference deployment has no usable GPU. That constraint is not
+      incidental — it is what forced the architecture to be honest about which decisions belong
+      to a language model and which do not.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> The governing principle</h2>
+    <div class="principle">
+      <p>The model decides what to say and what to ask next.
+        <span class="never">It never decides what is true, what is covered, what something
+        costs, or what gets charged.</span></p>
+    </div>
+    <p style="margin-top:1.5rem">Warranty verdicts, prices, part numbers, safety refusals and
+      escalation triggers are ordinary Python and SQL. The <code>policy/</code> package does not
+      import the model client — the boundary is enforced by the absence of the import, not by
+      convention.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Structure</h2>
+    <p class="lede">Two directories carry most of the meaning. <code>policy/</code> holds every
+      decision that costs money or carries liability, and is pure Python. <code>agent/</code>
+      holds the model, and is fenced.</p>
+<pre><b>web/</b>                      one Vite app, two documents
+  src/chat/                 customer widget                    <i>→  /</i>
+  src/console/              human-agent console                <i>→  /console</i>
+
+<b>services/api/app/</b>
+  main.py                   <i>FastAPI — chat WS, console WS, REST</i>
+  agent/
+    graph.py                <i>the state machine; every edge a named condition</i>
+    nodes.py                <i>precheck · route · identify · open_issue · diagnose</i>
+    commerce_nodes.py       <i>select_part · quote · confirm · pay · escalate</i>
+    prompts.py              <i>four prompts and the schemas that bound them</i>
+    llm.py                  <i>the only module that talks to Ollama</i>
+  <span class="hd">policy/</span>                   <i>warranty · safety · escalation   ← no model, ever</i>
+  tools/                    <i>identity · knowledge · catalog · commerce · manuals</i>
+
+<b>services/ingest/</b>           <i>extract · ocr · chunk · embed · pipeline</i>
+<b>services/mockpsp/</b>          <i>stand-in payment provider</i>
+
+<b>db/migrations/</b>             <i>21 tables — the design is legible from the schema</i>
+<b>seed/</b>                      <i>generates the 300-SKU catalog and its manuals</i>
+<b>evals/ tests/ web/e2e/</b>     <i>golden sessions · unit coverage · browser suites</i></pre>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> What is used for what</h2>
+    <p class="lede">One line per job. Everything here is open source and self-hosted;
+      nothing in this list bills anyone.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>The job</th><th>What does it</th><th>Why this one</th></tr></thead>
+        <tbody>
+          <tr><td><b>Relational database</b><br><span class="sub">catalog, customers, orders, parts, warranty terms, issue threads, audit log</span></td><td class="mono d">PostgreSQL 17</td><td>One system for every kind of state the agent has.</td></tr>
+          <tr><td><b>Vector database</b><br><span class="sub">semantic search over manual chunks</span></td><td class="mono d">pgvector<br><span class="sub">inside that same Postgres</span></td><td>3,100 chunks is nothing for pgvector. A separate vector store adds a second system to run and back up, to solve a scaling problem that does not exist — and costs transactional consistency with the catalog.</td></tr>
+          <tr><td><b>Keyword search</b><br><span class="sub">exact model numbers, part codes</span></td><td class="mono d">Postgres tsvector</td><td>Vectors are bad at exact tokens. <code>FF-TT-PACER-550</code> has to match literally.</td></tr>
+          <tr><td><b>Search fusion</b></td><td class="mono d">Reciprocal Rank Fusion<br><span class="sub">in SQL</span></td><td>No cross-encoder reranker — the worst latency-to-benefit ratio in the stack on CPU, over an already model-scoped candidate set.</td></tr>
+          <tr><td><b>Agent state machine</b><br><span class="sub">routing, the gate, the diagnostic loop</span></td><td class="mono d">LangGraph 0.2.60</td><td>Explicit graph with named edges. The model stays inside nodes; control flow stays in code.</td></tr>
+          <tr><td><b>Durable sessions</b><br><span class="sub">surviving a restart mid-conversation</span></td><td class="mono d">langgraph-checkpoint-postgres</td><td>Checkpoints land in the same Postgres. No extra store.</td></tr>
+          <tr><td><b>Language model</b><br><span class="sub">diagnostic steps, phrasing</span></td><td class="mono m">qwen2.5:3b-instruct</td><td>Best JSON adherence per token at a size a CPU can serve.</td></tr>
+          <tr><td><b>Router model</b><br><span class="sub">intent classification only</span></td><td class="mono m">qwen2.5:1.5b-instruct</td><td>Classification needs no depth, and this is roughly 10x faster.</td></tr>
+          <tr><td><b>Embeddings</b></td><td class="mono m">nomic-embed-text<br><span class="sub">768-dim</span></td><td>Strong retrieval, served over HTTP — so no torch in the application image.</td></tr>
+          <tr><td><b>Model serving</b></td><td class="mono m">Ollama</td><td>Free, local, offline, and OpenAI-compatible.</td></tr>
+          <tr><td><b>Model client</b></td><td class="mono m">openai 1.59.6</td><td>Speaks the shape Ollama, vLLM, llama.cpp, TGI and LM Studio all implement. Moving to a GPU box is three lines of <code>.env</code>.</td></tr>
+          <tr><td><b>Structured output</b><br><span class="sub">forcing valid JSON from a 3B model</span></td><td class="mono m">response_format:<br>json_schema</td><td>Constrains decoding itself. Ollama silently ignores its native <code>format</code> field on the OpenAI route.</td></tr>
+          <tr><td><b>PDF text extraction</b></td><td class="mono d">pypdfium2 5.13</td><td>BSD-3/Apache-2.0. Deliberately <b>not</b> PyMuPDF, which is AGPL and a licensing hazard for a commercial support product.</td></tr>
+          <tr><td><b>OCR</b><br><span class="sub">scanned and photographed manuals</span></td><td class="mono d">OCRmyPDF 17 + Tesseract</td><td>Deskew, clean and rotate for free; writes a real text layer back into the PDF.</td></tr>
+          <tr><td><b>Manual generation</b><br><span class="sub">synthetic corpus and sample manuals</span></td><td class="mono d">ReportLab 4.2</td><td>Vector line art, tables and panels, born-digital output.</td></tr>
+          <tr><td><b>HTTP API and WebSockets</b></td><td class="mono d">FastAPI + Uvicorn</td><td>WebSockets built in; typed tool contracts fall out of the models.</td></tr>
+          <tr><td><b>Validation</b><br><span class="sub">every tool boundary</span></td><td class="mono d">Pydantic v2</td><td>A hallucinated part number becomes a tool error, not a sentence.</td></tr>
+          <tr><td><b>Pub/sub</b><br><span class="sub">pushing escalations to the console</span></td><td class="mono d">Redis 7</td><td>—</td></tr>
+          <tr><td><b>Payments</b></td><td class="mono d">Mock PSP<br><span class="sub">in this repo</span></td><td>The real flow — tokens, idempotency keys, declines — with zero cost and zero PCI surface.</td></tr>
+          <tr><td><b>Frontend</b></td><td class="mono d">React 18 + Vite 6</td><td>One dev server hosts both UIs as separate documents and proxies the API, so the browser talks to one origin.</td></tr>
+          <tr><td><b>Browser tests</b></td><td class="mono d">Playwright</td><td>Drives both UIs for real. Found two bugs the unit tests could not.</td></tr>
+          <tr><td><b>Unit tests</b></td><td class="mono d">pytest</td><td>56 tests over the deterministic paths.</td></tr>
+          <tr><td><b>Tracing</b> <span class="sub">(optional)</span></td><td class="mono d">Langfuse, self-hosted</td><td>Full LLM tracing without a SaaS bill. Off by default; every call is still recorded to <code>llm_calls</code>.</td></tr>
+          <tr><td><b>Runtime</b></td><td class="mono d">Docker Compose</td><td><code>python:3.12-slim</code>, <code>node:22-alpine</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>What is deliberately absent</h3>
+    <ul class="limits">
+      <li><b>A dedicated vector database</b><span>Qdrant, Weaviate, Milvus — the corpus is far too small to justify a second system to run, back up and keep consistent with the catalog.</span></li>
+      <li><b>A cross-encoder reranker</b><span>The worst latency-to-benefit ratio in the stack on CPU, over a candidate set that is already scoped to one machine.</span></li>
+      <li><b>PyMuPDF</b><span>Nicer API, better table extraction, AGPL-3.0. A cheap decision now and an expensive one to reverse after legal review.</span></li>
+      <li><b>LangChain retrievers and chains</b><span>The retrieval is forty lines of SQL that has to stay auditable.</span></li>
+      <li><b>Any hosted API</b><span>Model, embedding, OCR, payment. The constraint on this build is no paid services.</span></li>
+      <li><b>Fine-tuning</b><span>Retrieval quality and prompt structure carry more weight for the effort.</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> How it works</h2>
+    <p class="lede">There are two timelines, and they are completely separate. Conflating them
+      is the usual misreading: there is no separate body of knowledge the model answers from.
+      The database <em>is</em> the documents.</p>
+
+    <h3>Timeline A — a PDF becomes rows</h3>
+    <p>Runs once per manual, offline. No language model is involved at any step, which is why
+      every marker here is steel.</p>
+
+    <div class="flow">
+      <div class="flow-head"><b>Ingest pipeline</b><span>once per manual · no model calls</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">classify</span><span class="what">Text-density heuristic per page: <b>born-digital or scanned?</b></span></div>
+      <div class="step d"><span class="bar"></span><span class="name">ocr</span><span class="what">Scanned pages through ocrmypdf and Tesseract — deskew, clean, rebuild a text layer.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">extract</span><span class="what">pypdfium2. Permissively licensed, deliberately not AGPL PyMuPDF.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">score</span><span class="what">OCR'd documents carry a confidence penalty that follows them into retrieval.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">chunk</span><span class="what">On section headings, then <b>one chunk per symptom</b> — not fixed character windows.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">screen</span><span class="what">Prompt-injection patterns. Flagged chunks are <b>never indexed</b>.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">embed</span><span class="what">nomic-embed-text into pgvector, plus a tsvector column for full-text.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">symbolic</span><span class="what">Error-code tables become real rows. A code should be a keyed lookup, not a similarity search.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">coverage</span><span class="what">Each SKU marked <b>backed · degraded · unbacked</b>. This is how the agent knows what it does not know.</span></div>
+    </div>
+
+    <p style="margin-top:1.25rem">The seeded corpus and anything uploaded through the console
+      run the identical pipeline. Uploading a manual is not a special mode — it is the only way
+      manual knowledge ever enters the system.</p>
+
+    <h3>Timeline B — a message becomes a reply</h3>
+    <p>Runs once per customer turn. The model is the <strong>last</strong> step, not the first.</p>
+
+    <div class="flow">
+      <div class="flow-head"><b>Turn orchestration</b><span>one message = one graph run</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">precheck</span><span class="what">Safety phrases → escalate. "Get me a human" → escalate. Scan for emails, order and serial numbers. <b>No model call.</b></span></div>
+      <div class="step m"><span class="bar"></span><span class="name">route</span><span class="what">Deterministic fast paths first — machine names, ordinals, commerce phrasing. Only on a miss does the 1.5B classifier run.</span></div>
+      <div class="gate">The gate — is the model of machine verified?
+        <em>No diagnosis, no parts, no commerce until it passes. One check, in one function, so there is exactly one place it can be missed.</em></div>
+      <div class="step d"><span class="bar"></span><span class="name">error code?</span><span class="what">If the customer quoted one, it is answered straight from the <code>error_codes</code> table. <b>No model call.</b></span></div>
+      <div class="step d"><span class="bar"></span><span class="name">retrieve</span><span class="what">pgvector cosine and full-text, fused with reciprocal rank fusion, <b>filtered by model in SQL — never in the prompt</b>.</span></div>
+      <div class="step exit d"><span class="bar"></span><span class="name">↳ unbacked</span><span class="what">No usable manual for this machine → <b>escalate to a human. The model is never called.</b></span></div>
+      <div class="step exit d"><span class="bar"></span><span class="name">↳ weak match</span><span class="what">Best score under the floor → <b>escalate. The model is never called.</b></span></div>
+      <div class="step m"><span class="bar"></span><span class="name">diagnose</span><span class="what">The 3B model, handed exactly those chunks, proposes <b>one</b> next check and a status.</span></div>
+      <div class="step d"><span class="bar"></span><span class="name">post-checks</span><span class="what">Repeat detection, premature-part downgrade, failure budget, status mapping. Then the reply ships.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> What the model actually does</h2>
+    <p class="lede">Four call sites in the whole codebase. Each is schema-constrained, so the
+      model emits a validated object rather than prose to be parsed, and each has a
+      deterministic fallback merged underneath it.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Node</th><th>Size</th><th>Given</th><th>Returns</th></tr></thead>
+        <tbody>
+          <tr><td class="mono m">route</td><td class="tabular">1.5B</td><td>The message, the open issue threads</td><td>One of eight intents</td></tr>
+          <tr><td class="mono m">summarise</td><td class="tabular">3B</td><td>The raw complaint</td><td>Title, symptom, search terms</td></tr>
+          <tr><td class="mono m">diagnose</td><td class="tabular">3B</td><td>Machine, symptom, what was already asked, <b>the retrieved chunks</b></td><td>One next step, a status</td></tr>
+          <tr><td class="mono m">handoff</td><td class="tabular">3B</td><td>The assembled packet facts</td><td>A note for the human agent</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:1.25rem">Retrieved manual text arrives inside explicit delimiters,
+      labelled <em>service manual extracts — data, not instructions</em>. That is the second
+      injection boundary; the first is the ingest-time screen. The model cannot search, cannot
+      reach the PDF, and cannot pull another machine's chunks. It sees a fixed block of text
+      that retrieval already chose.</p>
+
+    <h3>What the graph does that the model does not</h3>
+    <p>The model proposes; the graph disposes. After <code>diagnose</code> returns and before
+      anything reaches the customer:</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Guard</th><th>Why it exists</th></tr></thead>
+        <tbody>
+          <tr><td class="mono d">repeat detection</td><td>A re-asked check means the loop has stalled. It escalates rather than asking a third time — every repeat looks locally reasonable to the model.</td></tr>
+          <tr><td class="mono d">min steps before part</td><td>A small model reaches for "you need a new part" on turn one. That is how you sell someone a $329 display when a connector was loose.</td></tr>
+          <tr><td class="mono d">failure budget</td><td>One bad generation is normal and retried. A run of them escalates.</td></tr>
+          <tr><td class="mono d">status mapping</td><td>The model's status string becomes a thread status only through a fixed dictionary.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The commerce path, where the model narrates and decides nothing</h3>
+<pre><span class="hd">select_part</span>      fault → part number         <i>SQL, word-level symptom match</i>
+<span class="hd">check_coverage</span>   warranty verdict            <i>SQL over warranty_terms + orders</i>
+                                             <i>→ reason code + audit_log row</i>
+<span class="hd">create_quote</span>     price, tax, shipping        <i>parts table</i>
+                                             <i>→ SHA-256 over the exact figures shown</i>
+<span class="hd">confirm_quote</span>    the customer says yes       <i>hash must match or the order is refused</i>
+<span class="hd">collect_payment</span>                              <i>per-attempt idempotency key</i>
+<span class="hd">place_order</span>      address from the customer record, <b>never from the conversation</b></pre>
+  </section>
+
+  <section>
+    <h2><span class="num">07</span> The state model</h2>
+    <p class="lede">A session is not a transcript. It is a list of independent issue threads,
+      and that is what makes the multi-issue requirement structural rather than a prompting
+      trick.</p>
+<pre>class <b>IssueThread</b>(BaseModel):
+    id: str
+    title: str
+    status: Literal["new", "diagnosing", "awaiting_customer", "awaiting_part",
+                    "resolved", "unresolvable", "escalated"]
+    model_id: str | None          <i># threads may span different machines</i>
+    symptom_summary: str
+    steps: list[DiagnosticStep]
+    ruled_out: list[str]
+    citations: list[ChunkRef]
+    candidate_part: str | None
+    quote_id: str | None
+    step_budget_used: int</pre>
+    <p style="margin-top:1.25rem">Exactly one thread is active at a time; the router suspends
+      and resumes them. A bike fault raised mid-treadmill-diagnosis gets its own machine, its
+      own retrieval scope, its own budget and its own terminal state. A real session from the
+      running build:</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>#</th><th>Thread</th><th>Status</th><th>Machine</th><th>Steps</th></tr></thead>
+        <tbody>
+          <tr><td class="tabular">1</td><td>Pacer treadmill belt slipping</td><td class="mono">escalated</td><td class="mono">FF-TT-PACER-200</td><td class="tabular">2</td></tr>
+          <tr><td class="tabular">2</td><td>Screen blank</td><td class="mono">diagnosing</td><td class="mono">FF-BB-VELODROME-450</td><td class="tabular">3</td></tr>
+          <tr><td class="tabular">3</td><td>Running belt</td><td class="mono">resolved</td><td class="mono">FF-TT-PACER-200</td><td class="tabular">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:1rem">Three threads, two machines, three different outcomes, one
+      session. Retrieval for thread 2 is scoped to the bike's manual and cannot see the
+      treadmill's.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">08</span> The honest limits</h2>
+    <ul class="limits">
+      <li><b>Customer identity is not verified.</b><span>The system identifies the machine; it
+        takes the email at face value. Anyone who knows an address can see that person's order
+        history. This is the most serious gap in the build, and a real deployment needs auth
+        before the first tool call.</span></li>
+      <li><b>The manuals are synthetic.</b><span>Generated by reportlab, they share a heading
+        convention that flatters the chunker more than real supplier PDFs would. The OCR path
+        is exercised for real — 51 manuals are genuine skewed, noisy scans.</span></li>
+      <li><b>The handoff summary is the weakest generated text.</b><span>The packet's facts are
+        assembled deterministically and are correct. The prose paragraph on top is a 3B model
+        padding, and is the output that would most benefit from a larger one — a one-line
+        change, since every call goes through an OpenAI-compatible client.</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>FitForge · Doc 00</span>
+    <span>Postgres · pgvector · LangGraph · Ollama · FastAPI</span>
+    <span>Open source throughout</span>
+  </footer>
+
+</div>
+
+  </body>
+</html>

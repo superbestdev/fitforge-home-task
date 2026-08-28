@@ -26,6 +26,7 @@ up: env ## Start the whole stack
 	@echo ""
 	@echo "  chat      http://localhost:5173"
 	@echo "  console   http://localhost:5173/console"
+	@echo "  docs      http://localhost:5173/docs"
 	@echo "  api docs  http://localhost:8000/docs"
 	@echo ""
 	@echo "Next: make models && make seed && make ingest"

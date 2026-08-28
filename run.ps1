@@ -96,6 +96,7 @@ switch ($Task.ToLower()) {
         Write-Host ''
         Write-Host '  chat      http://localhost:5173' -ForegroundColor Cyan
         Write-Host '  console   http://localhost:5173/console' -ForegroundColor Cyan
+        Write-Host '  docs      http://localhost:5173/docs' -ForegroundColor Cyan
         Write-Host '  api docs  http://localhost:8000/docs' -ForegroundColor Cyan
         Write-Host ''
         Write-Host 'Next: .\run.ps1 models; .\run.ps1 seed; .\run.ps1 ingest' -ForegroundColor Yellow
